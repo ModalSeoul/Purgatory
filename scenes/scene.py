@@ -1,6 +1,7 @@
 import pygame
 from utils.audio import play, music
 from screen import SCREEN
+from time import sleep
 
 
 class MainMenu:
@@ -12,7 +13,7 @@ class MainMenu:
     """
 
     def __init__(self, title):
-        music('bgmusic.mp3')
+        # music('bgmusic.mp3')
         self.coords = []
         self.typed_text(title, 5, 100, 72)
         self.menu_list = None
@@ -24,8 +25,8 @@ class MainMenu:
         else:
             item_y = 175
             for item in self.menu_list:
-                self.typed_text(item, 5, item_y, 52)
-                self.coords.append('{}{}'.format(str(5), str(item_y)))
+                self.typed_text(item, 20, item_y, 52)
+                self.coords.append((5, item_y))
                 item_y += 45
 
     def typed_text(self, text, x, y, size=None):
@@ -43,7 +44,7 @@ class MainMenu:
                 size,
                 (255, 255, 255)
             )
-
+            sleep(0.1)
             pygame.display.flip()
             if loop != loop_amount - 1:
                 play('keystroke.wav')

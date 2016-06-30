@@ -1,4 +1,5 @@
 import pygame
+import os
 from utils.audio import play, music
 from time import sleep
 
@@ -11,8 +12,9 @@ class Screen:
 
     def __init__(self, x, y):
         pygame.init()
-        self.sprites = {}
-        self.strings = {}
+        self.blits = []
+        self.fonts = []
+        self.loaded_images = {}
         self.PATH = 'images/'
         self.size = self.x, self.y = x, y
         self.screen = pygame.display.set_mode(self.size)
@@ -20,59 +22,22 @@ class Screen:
         self.WHITE = (255, 255, 255)
         self.D_WHITE = (200, 200, 200)
         self.BLACK = (0, 0, 0)
+        self.background = pygame.image.load(
+            os.path.join("images", "menu_bg.png")).convert()
 
-    def blit_storage(self, image, x, y, scale=None):
-        img = image.split('.')
-        if not self.sprites.get(img[0]):
-            self.sprites[img[0]] = {
-                'image': img[0],
-                'x': x,
-                'y': y,
-                'ext': img[-1],
-                'scale': None
-            }
-            if scale is not None:
-                self.sprites[img[0]]['scale'] = scale
-        else:
-            if self.sprites[img[0]]['x'] != x:
-                self.sprites[img[0]]['x'] = x
-            if self.sprites[img[0]]['y'] != y:
-                self.sprites[img[0]]['y'] = y
+    def blit_storage(self, rect):
+        self.blits.append(rect)
 
-    def text_storage(self, text, x, y, size, color):
-        ex, why = str(x), str(y)
-        self.strings['{}{}'.format(ex, why)] = {
-            'text': text,
-            'x': x,
-            'y': y,
-            'size': size,
-            'color': color
-        }
+    def text_storage(self, rect):
+        self.fonts.append(rect)
 
     def refresh_text(self):
-        for string in self.strings:
-            string = self.strings[string]
-            self.draw_string(
-                string['text'],
-                string['x'],
-                string['y'],
-                string['size'],
-                string['color']
-            )
+        for string in self.fonts:
+            self.screen.blit(string[0], string[1])
 
     def render_refresh(self):
-        for sprite in self.sprites:
-            short_sprite = self.sprites[sprite]
-            x, y = short_sprite['x'], short_sprite['y']
-            if short_sprite['scale'] is not None:
-                scale = short_sprite['scale']
-                self.draw_sprite(
-                    '{}.{}'.format(short_sprite['image'],
-                                   short_sprite['ext']), x, y, scale)
-            else:
-                self.draw_sprite(
-                    '{}.{}'.format(short_sprite['image'],
-                                   short_sprite['ext']), x, y)
+        for blit in self.blits:
+            self.screen.blit(blit[0], blit[1])
 
     def draw_string(self, text, x, y, size=None, color=None):
         if size is None:
@@ -80,21 +45,28 @@ class Screen:
         if color is None:
             color = self.WHITE
 
-        self.text_storage(text, x, y, size, color)
         font = pygame.font.Font('ostrich-regular.ttf', size)
         string = font.render(text, True, color)
         text_rect = string.get_rect()
         text_rect[0], text_rect[1] = x, y
+        to_store = [string, text_rect, color]
+        self.text_storage(to_store)
         self.screen.blit(string, text_rect)
         return text_rect
 
     def draw_sprite(self, image, x, y, scale=None):
-        self.blit_storage(image, x, y, scale)
-        self.image = pygame.image.load('{}{}'.format(self.PATH, image))
+        self.loaded_images[image]
+        image = pygame.image.load('{}{}'.format(self.PATH, image))
         if scale is not None:
-            self.image = pygame.transform.scale(self.image, scale)
-        self.rect = (x, y, 32, 32)
-        self.screen.blit(self.image, self.rect)
+            image = pygame.transform.scale(image, scale)
+        rect = image.get_rect()
+        rect[0], rect[1] = x, y
+        to_store = [
+            image,
+            rect
+        ]
+        self.blit_storage(to_store)
+        self.screen.blit(image, rect)
 
     def refresh(self):
         self.screen.fill(self.BLACK)
@@ -107,7 +79,7 @@ class Screen:
 
     def frame(self):
         self.render_refresh()
-        self.draw_background('menu_bg.png')
+        self.screen.blit(self.background, (0, 0))
         self.refresh_text()
         pygame.display.flip()
 
