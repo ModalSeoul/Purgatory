@@ -24,7 +24,6 @@ class Main:
         self.main_menu.type_list()
         # Because main_menu.coords is too long.
         self.coords = self.main_menu.coords
-        SCREEN.draw_sprite('ak-47.png', 5, 5)
 
     def reset(self, menu_entry):
         # Empty list that will contain active menu entries.
